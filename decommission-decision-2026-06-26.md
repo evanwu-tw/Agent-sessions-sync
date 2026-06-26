@@ -27,7 +27,7 @@
 
 ## 執行步驟(本台 Mac)
 
-> **狀態:本台(公司機)已於 2026-06-26 執行完成(含 seal commit/push,HEAD = `df3f212`)。** 以下步驟同時作為**另一台 Mac 的 runbook**——照跑前先看下方「另一台 Mac」段的前提。
+> **狀態:本台(公司機)已於 2026-06-26 執行完成(含 seal commit/push,HEAD = `df3f212`,指 `~/agent-sessions` session repo —— 不是本文件所在的 `Agent-sessions-sync` repo)。** 以下步驟同時作為**另一台 Mac 的 runbook**——照跑前先看下方「另一台 Mac」段的前提。
 > 前提:執行當下 Claude Code / Codex **沒有在跑**(否則它們正抓著 symlink 讀寫)。
 
 ### 1. 封存前先 seal 一次快照
@@ -40,15 +40,17 @@
 # 先看狀態
 ls -la ~/.claude/projects ~/.codex/sessions
 
-# 安全 guard:兩個都確實是 symlink 才執行;否則印警告、不動作
-# (狀態跟預期不同時硬跑,rm 雖不刪實體目錄,但後面 cp 可能造成 nested/混合,排查很煩)
-if [ -L ~/.claude/projects ] && [ -L ~/.codex/sessions ]; then
+# 安全 guard:兩個 symlink 都在、且來源目錄都存在,才執行;否則印警告、不動作
+# (1) 不是 symlink 就硬跑,rm 雖不刪實體目錄,但後面 cp 可能造成 nested/混合,排查很煩
+# (2) 沒先確認來源就 rm,萬一 ~/agent-sessions 來源不存在,symlink 已刪、cp 又失敗 → 留下半拆狀態
+if [ -L ~/.claude/projects ] && [ -L ~/.codex/sessions ] \
+   && [ -d ~/agent-sessions/claude/projects ] && [ -d ~/agent-sessions/codex/sessions ]; then
   rm ~/.claude/projects ~/.codex/sessions                    # 只刪符號連結,不動 repo
   cp -R ~/agent-sessions/claude/projects ~/.claude/projects  # 從本機 clone 還原成實體目錄
   cp -R ~/agent-sessions/codex/sessions  ~/.codex/sessions
   echo "OK: 已還原成實體目錄"
 else
-  echo "STOP: 有一個不是 symlink,先 ls -la 看清楚狀態,別硬跑"
+  echo "STOP: symlink 或來源目錄不齊,先 ls -la 看清楚狀態,別硬跑"
 fi
 ```
 
@@ -90,6 +92,6 @@ rm -rf ~/.claude/projects.pre-symlink.* \
 
 - [ ] 本台 `ls -la ~/.claude/projects` / `~/.codex/sessions` 顯示為**實體目錄**(無 `->`)
 - [ ] 終端機起 `claude --resume` / `codex resume --all` 仍看得到本機歷史 session
-- [ ] `~/agent-sessions` repo 仍在,但不再被讀寫(不再是同步來源)
+- [ ] `~/agent-sessions` repo 仍在,**新開的** Claude/Codex 不再把它當 session storage(不再是同步來源)。註:拆 symlink 當下若有舊 session 還活著,它可能仍 append 幾行到原檔 handle —— 那不是退役失敗,等該 session 結束就停。
 - [ ] 另一台 Mac 也完成步驟 2–4
 - [ ] 往後脈絡落地點:挑一個進行中的專案,實際跑一次「收斂點請 agent 更新 CLAUDE.md/AGENTS.md → review」的流程,確認這條新主力路徑可運作
