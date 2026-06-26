@@ -73,7 +73,9 @@ rm -rf ~/.claude/projects.pre-symlink.* \
 
 ---
 
-## 另一台 Mac(必做,否則沒真正退役)
+## 另一台 Mac(✅ 已於 2026-06-26 完成)
+
+> **狀態:已退役完成。** 兩個 symlink 已還原成本機實體目錄(`ls -la` 無 `->`)、`.pre-symlink.*` 等殘留也清掉;用「先 `cp -R` 到 `.real.tmp` → `rm` symlink → `mv` 就位」抽換,正在寫的 session 目錄沒被中途破壞。**至此兩台 Mac 的 session-sync 機制全部收掉。**
 
 另一台仍掛著指向它自己 `~/agent-sessions` clone 的活 symlink。它跑一次上面的「執行步驟 2–4」(guard → 拆 symlink → **從它自己的 clone** 還原 → 清備份)就完成退役——它的本地歷史本來就在自己 clone 裡,還原後留在本機即可。
 
@@ -93,5 +95,5 @@ rm -rf ~/.claude/projects.pre-symlink.* \
 - [ ] 本台 `ls -la ~/.claude/projects` / `~/.codex/sessions` 顯示為**實體目錄**(無 `->`)
 - [ ] 終端機起 `claude --resume` / `codex resume --all` 仍看得到本機歷史 session
 - [ ] `~/agent-sessions` repo 仍在,**新開的** Claude/Codex 不再把它當 session storage(不再是同步來源)。註:拆 symlink 當下若有舊 session 還活著,它可能仍 append 幾行到原檔 handle —— 那不是退役失敗,等該 session 結束就停。
-- [ ] 另一台 Mac 也完成步驟 2–4
+- [x] 另一台 Mac 也完成步驟 2–4(2026-06-26 完成)
 - [ ] 往後脈絡落地點:挑一個進行中的專案,實際跑一次「收斂點請 agent 更新 CLAUDE.md/AGENTS.md → review」的流程,確認這條新主力路徑可運作
